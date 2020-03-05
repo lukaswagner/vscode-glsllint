@@ -1,10 +1,10 @@
 {
   "name": "vscode-glsllint",
   "version": "0.0.9",
-  "publisher": "CADENAS",
+  "publisher": "lukaswagner",
   "repository": {
     "type": "git",
-    "url": "https://github.com/cadenasgmbh/vscode-glsllint"
+    "url": "https://github.com/lukaswagner/vscode-glsllint"
   },
   "engines": {
     "vscode": "^1.38.0"

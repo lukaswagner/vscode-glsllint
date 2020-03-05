@@ -4,13 +4,17 @@ import * as vscode from 'vscode';
 
 import { GLSLLintingProvider } from './features/glsllintProvider';
 import { GLSLifyProvider } from './features/glslifyProvider';
+import { WebpackProvider } from './features/webpackProvider';
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
   const glslifyProvider = new GLSLifyProvider();
+  const webpackProvider = new WebpackProvider();
+
   const providerRegistrations = vscode.Disposable.from(
-    vscode.workspace.registerTextDocumentContentProvider(GLSLifyProvider.scheme, glslifyProvider)
+    vscode.workspace.registerTextDocumentContentProvider(GLSLifyProvider.scheme, glslifyProvider),
+    vscode.workspace.registerTextDocumentContentProvider(WebpackProvider.scheme, webpackProvider)
   );
 
   const linter = new GLSLLintingProvider();

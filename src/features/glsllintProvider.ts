@@ -7,6 +7,8 @@ import { GLSLifyProvider } from './glslifyProvider';
 import { GLSLifyUriMapper } from './glslifyUriMapper';
 import * as ts from 'typescript';
 import { stageExpressions } from './glslStageExpression';
+import { WebpackProvider } from './webpackProvider';
+import { WebpackUriMapper } from './webpackUriMapper';
 
 enum glslValidatorFailCodes {
   ESuccess = 0,
@@ -312,6 +314,18 @@ export class GLSLLintingProvider {
         }
       }
 
+      const webpackRegEx = /@import ([.\/\w_-]+);/gi;
+      const webpackUsed = webpackRegEx.test(fileContent);
+
+      if (webpackUsed) {
+        fileContent = fileContent.replace(webpackRegEx, (match, p1) => {
+          const file =
+            path.join(path.dirname(textDocument.fileName), p1) + '.glsl';
+          const content = fs.readFileSync(file, { encoding: 'UTF-8' });
+          return content;
+        })
+      }
+
       const stage = this.getShaderStageFromFile(textDocument.fileName);
       diagnostics = await this.lintShaderCode(fileContent, stage);
 
@@ -323,6 +337,17 @@ export class GLSLLintingProvider {
         const glslifyTextDocument = await vscode.workspace.openTextDocument(glslifyUri);
         await vscode.window.showTextDocument(glslifyTextDocument);
         await vscode.languages.setTextDocumentLanguage(glslifyTextDocument, 'glsl');
+      }
+
+      if (webpackUsed) {
+        const webpackFileExt = path.extname(textDocument.fileName);
+        const webpackFileName = path.basename(textDocument.fileName, webpackFileExt);
+        const webpackUri = vscode.Uri.parse(`${WebpackProvider.scheme}:${webpackFileName}.combined${webpackFileExt}`);
+        WebpackUriMapper.add(webpackUri, fileContent);
+
+        const webpackTextDocument = await vscode.workspace.openTextDocument(webpackUri);
+        await vscode.window.showTextDocument(webpackTextDocument);
+        await vscode.languages.setTextDocumentLanguage(webpackTextDocument, 'glsl');
       }
     }
     this.diagnosticCollection.set(docUri, diagnostics);
